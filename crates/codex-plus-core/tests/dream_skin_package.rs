@@ -88,6 +88,64 @@ fn validates_real_dream_skin_package_shape() {
 }
 
 #[test]
+fn accepts_packages_with_newer_1_x_client_version() {
+    let css = br#"[data-ds-part="root"] { color: var(--ds-theme-color-text); }"#;
+    let theme = serde_json::to_vec(&json!({
+        "schemaVersion": 1,
+        "id": "community.theme.v1514",
+        "name": "Newer Theme",
+        "image": "background.png",
+        "appearance": "dark",
+        "art": { "focusX": 0.5, "focusY": 0.5, "safeArea": "none", "taskMode": "ambient" },
+        "colors": {
+            "background": "#111111", "panel": "#222222", "panelAlt": "#333333",
+            "accent": "#44AA88", "accentAlt": "#55BB99", "secondary": "#667788",
+            "highlight": "#77CCAA", "text": "#F5F5F5", "muted": "#AAAAAA", "line": "#444444"
+        }
+    }))
+    .unwrap();
+    let image = include_bytes!("../../../assets/inject/dream-skin-default.png");
+    let manifest = serde_json::to_vec(&json!({
+        "packageVersion": 1,
+        "themeId": "community.theme.v1514",
+        "version": "1.0.0",
+        "skinApiVersion": 1,
+        "minClientVersion": "1.5.14",
+        "platforms": ["windows"],
+        "capabilities": ["background", "tokens", "safe-css"],
+        "publisher": { "id": "tester", "displayName": "Tester" },
+        "license": "MIT",
+        "provenance": { "aiGenerated": false, "summary": "Test fixture" },
+        "files": [
+            { "path": "theme.json", "mediaType": "application/json", "bytes": theme.len(), "sha256": sha256(&theme) },
+            { "path": "background.png", "mediaType": "image/png", "bytes": image.len(), "sha256": sha256(image) },
+            { "path": "theme.css", "mediaType": "text/css", "bytes": css.len(), "sha256": sha256(css) }
+        ],
+        "createdAt": "2026-09-18T00:00:00Z"
+    }))
+    .unwrap();
+
+    let mut archive = Cursor::new(Vec::new());
+    {
+        let mut writer = zip::ZipWriter::new(&mut archive);
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
+        for (name, bytes) in [
+            ("manifest.json", manifest.as_slice()),
+            ("theme.json", theme.as_slice()),
+            ("theme.css", css.as_slice()),
+            ("background.png", image.as_slice()),
+        ] {
+            writer.start_file(name, options).unwrap();
+            writer.write_all(bytes).unwrap();
+        }
+        writer.finish().unwrap();
+    }
+    let package = validate_and_read_package(&archive.into_inner(), "windows").unwrap();
+    assert_eq!(package.manifest.min_client_version, "1.5.14");
+}
+
+#[test]
 fn validates_package_inside_one_top_level_directory() {
     let css = br#"[data-ds-part="root"] { color: var(--ds-theme-color-text); }"#;
     let package = validate_and_read_package(

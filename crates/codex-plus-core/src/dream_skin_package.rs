@@ -917,7 +917,7 @@ fn validate_manifest(manifest: &DreamSkinPackageManifest, platform: &str) -> any
     if !valid_semver(&manifest.version) || !valid_semver(&manifest.min_client_version) {
         bail!("manifest 版本号无效");
     }
-    if compare_semver(&manifest.min_client_version, "1.5.12").is_gt() {
+    if compare_semver(&manifest.min_client_version, "2.0.0").is_ge() {
         bail!(
             "主题包需要更新版本的 Dream Skin 协议：{}",
             manifest.min_client_version

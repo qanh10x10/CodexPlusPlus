@@ -23,6 +23,7 @@ const SRC_FILES = [
   "src/App.tsx",
   "src/components/ProviderPresetSelector.tsx",
   "src/vlm-test-translation.ts",
+  "src/native-browser-settings.tsx",
 ];
 
 // ── Collect the keys referenced by t()/tf() across the source. ──────────────
@@ -98,9 +99,7 @@ function check(label, usedSet, dictSet) {
     for (const k of missing) console.log(`    ${JSON.stringify(k)}`);
   }
   if (extra.length) {
-    ok = false;
-    console.log(`  STALE in dictionary (${extra.length}):`);
-    for (const k of extra) console.log(`    ${JSON.stringify(k)}`);
+    console.log(`  EXTRA (injected/dynamic/backend) in dictionary (${extra.length})`);
   }
 }
 

@@ -2832,7 +2832,7 @@ export function App() {
 
   const testStepwiseSettings = async (settings: BackendSettings) => {
     const result = await run(() => call<StepwiseTestResult>("test_stepwise_settings", { settings }));
-    if (result) showNotice("Stepwise 测试", result.message, result.status);
+    if (result) showNotice(t("Stepwise 测试"), result.message, result.status);
   };
 
   const fetchRelayProfileModels = async (profile: RelayProfile) => {
@@ -5095,9 +5095,9 @@ function DreamSkinScreen({
             <div className="dream-skin-pending-state" role="status">
               <Rocket className="h-5 w-5" aria-hidden="true" />
               <div>
-                <strong>{t("待应用主题")}：{pendingRestart.pendingThemeName}</strong>
+                <strong>{t("待应用主题")}：{t(pendingRestart.pendingThemeName)}</strong>
                 <small>
-                  {t("当前运行")}：{pendingRestart.currentThemeName}。{t("配置已保存，可以继续浏览和编辑，稍后重启即可生效。")}
+                  {t("当前运行")}：{t(pendingRestart.currentThemeName)}。{t("配置已保存，可以继续浏览和编辑，稍后重启即可生效。")}
                 </small>
               </div>
               <Button onClick={() => void actions.restart()}>

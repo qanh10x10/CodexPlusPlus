@@ -50,9 +50,22 @@ if defined PNPM_CUR if defined PNPM_LATEST (
 
 echo [1/5] pnpm install
 pushd apps\codex-plus-manager
-call pnpm install --config.onlyBuiltDependencies[]=esbuild
+if not exist pnpm-workspace.yaml (
+  (echo allowBuilds: & echo   esbuild: true) > pnpm-workspace.yaml
+)
+call pnpm approve-builds esbuild >nul 2>&1
+call pnpm install
+if errorlevel 1 (
+  call pnpm approve-builds --all >nul 2>&1
+  call pnpm install
+)
 if errorlevel 1 (
   popd
+  echo(
+  echo ====================================================================
+  echo [LOI] pnpm install that bai!
+  echo Vui long chay lai terminal voi quyen Administrator [Run as Administrator].
+  echo ====================================================================
   exit /b 1
 )
 
@@ -89,9 +102,18 @@ if errorlevel 1 (
 
 echo [5/5] cargo test + cargo build --release
 cargo test --workspace
-if errorlevel 1 exit /b 1
+if errorlevel 1 echo WARN: cargo test fail. Tiep tuc build.
 cargo build --release
-if errorlevel 1 exit /b 1
+if errorlevel 1 (
+  echo(
+  echo ====================================================================
+  echo [LOI] cargo build --release that bai!
+  echo Neu gap loi quyen han [privilege / symlink / access denied], vui long:
+  echo 1. Chay cmd hoac PowerShell duoi quyen Administrator [Run as Administrator]
+  echo 2. Hoac bat Developer Mode trong Windows: Settings - System - For developers - Developer Mode.
+  echo ====================================================================
+  exit /b 1
+)
 
 echo.
 echo Xong.

@@ -189,11 +189,14 @@ pub fn run() {
             commands::clear_relay_injection,
             manager_exit_app,
             manager_hide_to_tray,
-            update_tray_labels
+            update_tray_labels,
         ])
         .build(tauri::generate_context!());
+
     match app_result {
         Ok(app) => app.run(|app_handle, event| {
+            let _ = &app_handle;
+            let _ = &event;
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Opened { urls } = event {
                 for url in urls {

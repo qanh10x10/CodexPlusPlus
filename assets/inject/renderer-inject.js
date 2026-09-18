@@ -375,6 +375,21 @@
   installCodexPlusFastStartup();
   installCodexPlusForceChineseLocale();
 
+  function isChineseLocale() {
+    const config = window.__CODEX_PLUS_FORCE_CHINESE_LOCALE__;
+    if (config) {
+      if (config.locale && config.locale.toLowerCase().startsWith("en")) return false;
+      if (config.enabled === false) return false;
+    }
+    if (typeof codexPlusBackendSettings !== "undefined" && codexPlusBackendSettings && codexPlusBackendSettings.codexAppForceChineseLocale === false) return false;
+    const htmlLang = (document.documentElement.lang || navigator.language || "").toLowerCase();
+    return htmlLang.startsWith("zh");
+  }
+
+  function tr(zh, en) {
+    return isChineseLocale() ? zh : en;
+  }
+
   const helperBase = window.__CODEX_SESSION_DELETE_HELPER__ || "http://127.0.0.1:57321";
   const buttonClass = "codex-delete-button";
   const exportButtonClass = "codex-export-button";
@@ -1418,6 +1433,7 @@
     stepwise: "codexAppStepwiseEnabled",
     answerOutline: "codexAppAnswerOutlineEnabled",
     pasteFix: "codexAppPasteFix",
+    forceChineseLocale: "codexAppForceChineseLocale",
     dreamSkinEnabled: "codexAppDreamSkinEnabled",
     dreamSkinPaused: "codexAppDreamSkinPaused",
     dreamSkinThemeConfig: "codexAppDreamSkinThemeConfig",
@@ -3954,16 +3970,16 @@
     const label = document.querySelector("[data-codex-backend-status]");
     if (label) {
       label.dataset.status = status;
-      label.textContent = codexPlusBackendStatus.message || (status === "ok" ? "后端已连接" : "未连接");
+      label.textContent = codexPlusBackendStatus.message || (status === "ok" ? tr("后端已连接", "Backend connected") : tr("未连接", "Disconnected"));
     }
     document.querySelectorAll("[data-codex-backend-indicator]").forEach((indicator) => {
       indicator.dataset.status = status;
-      indicator.title = status === "ok" ? "后端已连接" : status === "checking" ? "正在检查后端" : "未连接";
+      indicator.title = status === "ok" ? tr("后端已连接", "Backend connected") : status === "checking" ? tr("正在检查后端", "Checking backend") : tr("未连接", "Disconnected");
     });
     const sidebarStatus = document.querySelector(`#${codexPlusSidebarNavId} .codex-plus-sidebar-nav-status`);
     if (sidebarStatus) {
       sidebarStatus.dataset.status = status;
-      sidebarStatus.title = status === "ok" ? "后端已连接" : status === "checking" ? "正在检查后端" : "未连接";
+      sidebarStatus.title = status === "ok" ? tr("后端已连接", "Backend connected") : status === "checking" ? tr("正在检查后端", "Checking backend") : tr("未连接", "Disconnected");
     }
     refreshCodexServiceTierControls();
   }
@@ -4028,25 +4044,25 @@
   }
 
   function userScriptStatusLabel(status) {
-    return { loaded: "已加载", failed: "失败", disabled: "已禁用", not_loaded: "未加载", loading: "加载中" }[status] || status || "未知";
+    return { loaded: tr("已加载", "Loaded"), failed: tr("失败", "Failed"), disabled: tr("已禁用", "Disabled"), not_loaded: tr("未加载", "Not loaded"), loading: tr("加载中", "Loading") }[status] || status || tr("未知", "Unknown");
   }
 
   function renderUserScripts() {
     const enabledToggle = document.querySelector("[data-codex-user-scripts-enabled]");
     if (enabledToggle) enabledToggle.dataset.enabled = String(!!codexPlusUserScripts.enabled);
     const dirs = document.querySelector("[data-codex-user-script-dirs]");
-    if (dirs) dirs.textContent = `内置：${codexPlusUserScripts.builtin_dir || "未找到"}  用户：${codexPlusUserScripts.user_dir || "未找到"}`;
+    if (dirs) dirs.textContent = `${tr("内置：", "Built-in: ")}${codexPlusUserScripts.builtin_dir || tr("未找到", "Not found")}  ${tr("用户：", "User: ")}${codexPlusUserScripts.user_dir || tr("未找到", "Not found")}`;
     const list = document.querySelector("[data-codex-user-script-list]");
     if (!list) return;
     if (!codexPlusUserScripts.scripts?.length) {
-      list.textContent = "未发现用户脚本。";
+      list.textContent = tr("未发现用户脚本。", "No user scripts found.");
       return;
     }
     list.innerHTML = codexPlusUserScripts.scripts.map((script) => `
       <div class="codex-plus-user-script-item">
         <div>
           <div class="codex-plus-user-script-name">${escapeHtml(script.name || script.key)}</div>
-          <div class="codex-plus-user-script-meta">${script.source === "builtin" ? "内置" : "用户"} · ${userScriptStatusLabel(script.status)}</div>
+          <div class="codex-plus-user-script-meta">${script.source === "builtin" ? tr("内置", "Built-in") : tr("用户", "User")} · ${userScriptStatusLabel(script.status)}</div>
           ${script.error ? `<div class="codex-plus-user-script-error">${escapeHtml(script.error)}</div>` : ""}
         </div>
         <button type="button" class="codex-plus-toggle" data-codex-user-script-key="${escapeHtml(script.key)}" data-enabled="${String(!!script.enabled)}"><span></span></button>
@@ -4115,16 +4131,16 @@
   }
 
   function renderCodexPlusAds() {
-    if (!codexPlusAdsLoaded) return `<div class="codex-plus-ad-empty">推荐内容加载中…</div>`;
-    if (!codexPlusAds.length) return `<div class="codex-plus-ad-empty">暂无推荐内容。</div>`;
+    if (!codexPlusAdsLoaded) return `<div class="codex-plus-ad-empty">${tr("推荐内容加载中…", "Loading recommendations...")}</div>`;
+    if (!codexPlusAds.length) return `<div class="codex-plus-ad-empty">${tr("暂无推荐内容。", "No recommended content.")}</div>`;
     return `
       <section class="codex-plus-ad-section">
-        <h3 class="codex-plus-ad-section-title">赞助商推荐</h3>
-        <div class="codex-plus-ad-list">${renderCodexPlusAdGroup("sponsor", "暂无赞助商推荐。")}</div>
+        <h3 class="codex-plus-ad-section-title">${tr("赞助商推荐", "Sponsored")}</h3>
+        <div class="codex-plus-ad-list">${renderCodexPlusAdGroup("sponsor", tr("暂无赞助商推荐。", "No sponsored content."))}</div>
       </section>
       <section class="codex-plus-ad-section">
-        <h3 class="codex-plus-ad-section-title">普通推荐</h3>
-        <div class="codex-plus-ad-list">${renderCodexPlusAdGroup("normal", "暂无普通推荐。")}</div>
+        <h3 class="codex-plus-ad-section-title">${tr("普通推荐", "Recommended")}</h3>
+        <div class="codex-plus-ad-list">${renderCodexPlusAdGroup("normal", tr("暂无普通推荐。", "No recommendations."))}</div>
       </section>
     `;
   }
@@ -4279,92 +4295,92 @@
       <div class="codex-plus-modal-content" role="dialog" aria-modal="true" aria-label="Codex++">
         <div class="codex-plus-modal-header">
           <div class="codex-plus-modal-title"><span class="codex-plus-backend-indicator" data-codex-backend-indicator="true" data-status="checking"></span><span data-codex-plus-version="true">Codex++ ${codexPlusVersion}</span></div>
-          <button type="button" class="codex-plus-modal-close" aria-label="${pageMode ? "返回" : "关闭"}">${pageMode ? "返回" : "×"}</button>
+          <button type="button" class="codex-plus-modal-close" aria-label="${pageMode ? tr("返回", "Back") : tr("关闭", "Close")}">${pageMode ? tr("返回", "Back") : "×"}</button>
         </div>
         <div class="codex-plus-tabs" role="tablist" aria-label="Codex++">
-          <button type="button" class="codex-plus-tab-button" data-codex-plus-tab="home" data-active="true">主页</button>
-          <button type="button" class="codex-plus-tab-button" data-codex-plus-tab="userScripts" data-active="false">用户脚本</button>
-          <button type="button" class="codex-plus-tab-button" data-codex-plus-tab="sponsor" data-active="false">推荐内容</button>
+          <button type="button" class="codex-plus-tab-button" data-codex-plus-tab="home" data-active="true">${tr("主页", "Home")}</button>
+          <button type="button" class="codex-plus-tab-button" data-codex-plus-tab="userScripts" data-active="false">${tr("用户脚本", "User Scripts")}</button>
+          <button type="button" class="codex-plus-tab-button" data-codex-plus-tab="sponsor" data-active="false">${tr("推荐内容", "Recommended")}</button>
         </div>
         <div class="codex-plus-modal-body">
           <div class="codex-plus-panel" data-codex-plus-panel="home">
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">后端连接</div><div class="codex-plus-row-description">每 5 秒检查一次 launcher 后端状态。</div></div>
+              <div><div class="codex-plus-row-title">${tr("后端连接", "Backend Connection")}</div><div class="codex-plus-row-description">${tr("每 5 秒检查一次 launcher 后端状态。", "Check launcher backend status every 5 seconds.")}</div></div>
               <div class="codex-plus-backend-status">
-                <div class="codex-plus-backend-label" data-codex-backend-status="true" data-status="checking">正在检查后端…</div>
+                <div class="codex-plus-backend-label" data-codex-backend-status="true" data-status="checking">${tr("正在检查后端…", "Checking backend...")}</div>
               </div>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">Codex增强</div><div class="codex-plus-row-description">关闭后停用删除、导出、插件相关和菜单位置增强。</div></div>
+              <div><div class="codex-plus-row-title">${tr("Codex增强", "Codex Enhancements")}</div><div class="codex-plus-row-description">${tr("关闭后停用删除、导出、插件相关和菜单位置增强。", "Disable delete, export, plugin, and menu position enhancements when turned off.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-backend-setting="enhancementsEnabled"><span></span></button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">插件市场解锁</div><div class="codex-plus-row-description">${codexPlusBackendSettings.launchMode === "relay" ? "兼容增强模式下无需开启；ChatGPT 登录态会保留官方插件市场。" : "API Key 模式下扩展插件市场请求，尽量显示完整插件列表。"}</div></div>
+              <div><div class="codex-plus-row-title">${tr("插件市场解锁", "Unlock Plugin Marketplace")}</div><div class="codex-plus-row-description">${codexPlusBackendSettings.launchMode === "relay" ? tr("兼容增强模式下无需开启；ChatGPT 登录态会保留官方插件市场。", "Not needed in compatibility enhancement mode; ChatGPT login preserves official marketplace.") : tr("API Key 模式下扩展插件市场请求，尽量显示完整插件列表。", "Expand plugin marketplace requests in API Key mode to display full plugin list.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="pluginMarketplaceUnlock" ${codexPlusBackendSettings.launchMode === "relay" ? 'disabled data-relay-unneeded="true"' : ""}><span></span></button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">模型白名单解锁</div><div class="codex-plus-row-description">从环境变量和 Codex config.toml 中的中转站 /v1/models 拉取模型，并补进模型选择列表。</div></div>
+              <div><div class="codex-plus-row-title">${tr("模型白名单解锁", "Unlock Model Whitelist")}</div><div class="codex-plus-row-description">${tr("从环境变量和 Codex config.toml 中的中转站 /v1/models 拉取模型，并补进模型选择列表。", "Fetch models from environment variables and relay /v1/models in config.toml, adding to model list.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="modelWhitelistUnlock"><span></span></button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">Fast 按钮</div><div class="codex-plus-row-description">显示服务模式切换按钮；Fast 仅支持 ${codexServiceTierFastModelListLabel()}，其他模型按 Standard 发送。</div></div>
+              <div><div class="codex-plus-row-title">${tr("Fast 按钮", "Fast Button")}</div><div class="codex-plus-row-description">${tr("显示服务模式切换按钮；Fast 仅支持 ", "Show service mode switch button; Fast only supports ")}${codexServiceTierFastModelListLabel()}${tr("，其他模型按 Standard 发送。", ", other models are sent as Standard.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="serviceTierControls"><span></span></button>
             </div>
             ${codexPlusIsWindowsPlatform ? `<div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">桌宠跟随真实鼠标</div><div class="codex-plus-row-description">仅支持 V2 桌宠；不会修改宠物文件。将 V2 的 Computer Use 光标朝向动作映射到真实鼠标，V1 开启后安全不生效；拖拽、原生悬停或 Computer Use 活跃时自动让步。</div></div>
+              <div><div class="codex-plus-row-title">${tr("桌宠跟随真实鼠标", "Desktop Pet Follows Real Mouse")}</div><div class="codex-plus-row-description">${tr("仅支持 V2 桌宠；不会修改宠物文件。将 V2 的 Computer Use 光标朝向动作映射到真实鼠标，V1 开启后安全不生效；拖拽、原生悬停或 Computer Use 活跃时自动让步。", "V2 desktop pet only; does not modify pet files. Maps cursor orientation to real mouse. Safely inactive on V1; auto-yields during drag or Computer Use.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="petRealMouseLook"><span></span></button>
             </div>` : ""}
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">悬浮球 · Stepwise</div><div class="codex-plus-row-description">生成下一步建议。</div></div>
+              <div><div class="codex-plus-row-title">${tr("悬浮球 · Stepwise", "Floating Ball · Stepwise")}</div><div class="codex-plus-row-description">${tr("生成下一步建议。", "Generate next-step suggestions.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="stepwise"><span></span></button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">悬浮球 · 回答大纲</div><div class="codex-plus-row-description">整理回答结构。</div></div>
+              <div><div class="codex-plus-row-title">${tr("悬浮球 · 回答大纲", "Floating Ball · Answer Outline")}</div><div class="codex-plus-row-description">${tr("整理回答结构。", "Organize answer outline structure.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="answerOutline"><span></span></button>
             </div>
             <div class="codex-plus-row" data-codex-service-tier-controls="true">
-              <div><div class="codex-plus-row-title">服务模式</div><div class="codex-plus-row-description">继承优先读取 Codex 应用内设置，其次读取 config.toml 的 service_tier；全局模式覆盖全部 thread；自定义允许按 thread 覆盖。</div></div>
+              <div><div class="codex-plus-row-title">${tr("服务模式", "Service Mode")}</div><div class="codex-plus-row-description">${tr("继承优先读取 Codex 应用内设置，其次读取 config.toml 的 service_tier；全局模式覆盖全部 thread；自定义允许按 thread 覆盖。", "Inherit reads in-app setting first, then config.toml service_tier. Global modes override all threads; Custom allows per-thread override.")}</div></div>
               <div class="codex-plus-service-tier-control">
-                <div class="codex-plus-service-tier-status" data-codex-service-tier-status="true" data-status="loading">正在读取…</div>
+                <div class="codex-plus-service-tier-status" data-codex-service-tier-status="true" data-status="loading">${tr("正在读取…", "Loading...")}</div>
                 <div class="codex-plus-service-tier-actions">
-                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-inherit="true">继承</button>
-                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-standard="true">全局 Standard</button>
-                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-fast="true">全局 Fast</button>
-                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-custom="true">自定义</button>
+                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-inherit="true">${tr("继承", "Inherit")}</button>
+                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-standard="true">${tr("全局 Standard", "Global Standard")}</button>
+                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-fast="true">${tr("全局 Fast", "Global Fast")}</button>
+                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-custom="true">${tr("自定义", "Custom")}</button>
                 </div>
                 <div class="codex-plus-service-tier-actions codex-plus-service-tier-thread-actions">
-                  <span class="codex-plus-service-tier-thread-label">当前 thread 覆盖</span>
-                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-thread-inherit="true" title="当前 thread 不单独覆盖，继承 Codex 默认设置">继承</button>
-                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-thread-standard="true" title="仅当前 thread 使用 Standard，并切到自定义模式">Standard</button>
-                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-thread-fast="true" title="仅当前 thread 使用 Fast，并切到自定义模式">Fast</button>
+                  <span class="codex-plus-service-tier-thread-label">${tr("当前 thread 覆盖", "Current thread override")}</span>
+                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-thread-inherit="true" title="${tr("当前 thread 不单独覆盖，继承 Codex 默认设置", "Do not override current thread; inherit Codex default setting")}">${tr("继承", "Inherit")}</button>
+                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-thread-standard="true" title="${tr("仅当前 thread 使用 Standard，并切到自定义模式", "Use Standard for current thread only, switching to custom mode")}">Standard</button>
+                  <button type="button" class="codex-plus-service-tier-button" data-codex-service-tier-thread-fast="true" title="${tr("仅当前 thread 使用 Fast，并切到自定义模式", "Use Fast for current thread only, switching to custom mode")}">Fast</button>
                 </div>
               </div>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">会话删除</div><div class="codex-plus-row-description">在会话列表悬停显示删除按钮，并支持撤销。</div></div>
+              <div><div class="codex-plus-row-title">${tr("会话删除", "Conversation Deletion")}</div><div class="codex-plus-row-description">${tr("在会话列表悬停显示删除按钮，并支持撤销。", "Show delete button when hovering over conversation list, with undo support.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="sessionDelete"><span></span></button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">Markdown 导出</div><div class="codex-plus-row-description">在会话列表显示导出按钮，按本地 rollout 导出带时间戳的 Markdown。</div></div>
+              <div><div class="codex-plus-row-title">${tr("Markdown 导出", "Markdown Export")}</div><div class="codex-plus-row-description">${tr("在会话列表显示导出按钮，按本地 rollout 导出带时间戳的 Markdown。", "Show export button in conversation list to export timestamped Markdown from local rollout.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="markdownExport"><span></span></button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">粘贴修复</div><div class="codex-plus-row-description">从 Word 等富文本来源粘贴到 Codex composer 时只保留纯文本，避免被识别为图片/文件附件。需重启 Codex 才生效。</div></div>
+              <div><div class="codex-plus-row-title">${tr("粘贴修复", "Paste Fix")}</div><div class="codex-plus-row-description">${tr("从 Word 等富文本来源粘贴到 Codex composer 时只保留纯文本，避免被识别为图片/文件附件。需重启 Codex 才生效。", "Keep plain text when pasting rich text into composer to avoid image/attachment conversion. Requires Codex restart.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="pasteFix"><span></span></button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">会话 ID 标识</div><div class="codex-plus-row-description">在侧边栏会话标题前显示短 ID 和 UUIDv7 创建时间，方便定位历史会话。</div></div>
+              <div><div class="codex-plus-row-title">${tr("会话 ID 标识", "Conversation ID Badge")}</div><div class="codex-plus-row-description">${tr("在侧边栏会话标题前显示短 ID 和 UUIDv7 创建时间，方便定位历史会话。", "Show short ID and UUIDv7 creation time before sidebar titles to locate historical chats.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="threadIdBadge"><span></span></button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">对话居中宽度</div><div class="codex-plus-row-description">开启后把主对话和输入框限制到固定最大宽度，适合大屏阅读。</div></div>
+              <div><div class="codex-plus-row-title">${tr("对话居中宽度", "Centered Chat Width")}</div><div class="codex-plus-row-description">${tr("开启后把主对话和输入框限制到固定最大宽度，适合大屏阅读。", "Constrain main chat and input box to a fixed maximum width for wide screens.")}</div></div>
               <div class="codex-plus-width-control">
                 <input class="codex-plus-width-input" data-codex-plus-conversation-view-width="true" min="${conversationViewMinWidth}" max="${conversationViewMaxAllowedWidth}" step="10" type="number" value="${conversationViewWidth()}">
                 <button type="button" class="codex-plus-toggle" data-codex-plus-setting="conversationView"><span></span></button>
               </div>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">切换对话保留位置</div><div class="codex-plus-row-description">开启后在不同 thread 之间切换时恢复到上一次浏览位置，不再自动跳到底部。</div></div>
+              <div><div class="codex-plus-row-title">${tr("切换对话保留位置", "Preserve Scroll Position")}</div><div class="codex-plus-row-description">${tr("开启后在不同 thread 之间切换时恢复到上一次浏览位置，不再自动跳到底部。", "Restore previous scroll position when switching threads instead of jumping to bottom.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-plus-setting="threadScrollRestore"><span></span></button>
             </div>
             <div class="codex-plus-row">
@@ -4374,55 +4390,55 @@
             <div class="codex-plus-row">
               <div><div class="codex-plus-row-title">Upstream worktree</div><div class="codex-plus-row-description">Create a Git worktree from a fresh upstream branch, equivalent to git worktree add -b branch path upstream/base.</div></div>
               <div class="codex-plus-worktree-actions">
-                <button type="button" class="codex-plus-action-button" data-codex-upstream-worktree-open="true">创建</button>
+                <button type="button" class="codex-plus-action-button" data-codex-upstream-worktree-open="true">${tr("创建", "Create")}</button>
                 <button type="button" class="codex-plus-toggle" data-codex-plus-setting="upstreamWorktreeCreate"><span></span></button>
               </div>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">历史会话修复</div><div class="codex-plus-row-description">切换官方登录、混合 API 或纯 API 后，让旧对话重新显示在当前模式下。</div></div>
+              <div><div class="codex-plus-row-title">${tr("历史会话修复", "Historical Chat Repair")}</div><div class="codex-plus-row-description">${tr("切换官方登录、混合 API 或纯 API 后，让旧对话重新显示在当前模式下。", "Allow older conversations to show in current mode after switching login/API modes.")}</div></div>
               <button type="button" class="codex-plus-toggle" data-codex-backend-setting="providerSyncEnabled"><span></span></button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">页面增强模式</div><div class="codex-plus-row-description">${codexPlusBackendSettings.launchMode === "relay" ? "兼容增强：保留会话删除、导出和用户脚本，仅关闭插件市场相关增强。" : "完整增强：加载插件市场、会话管理等全部页面能力。"}</div></div>
-              <button type="button" class="codex-plus-action-button" data-codex-open-manager="true">打开管理工具</button>
+              <div><div class="codex-plus-row-title">${tr("页面增强模式", "Page Enhancement Mode")}</div><div class="codex-plus-row-description">${codexPlusBackendSettings.launchMode === "relay" ? tr("兼容增强：保留会话删除、导出和用户脚本，仅关闭插件市场相关增强。", "Compatibility enhancement: retains chat delete, export, and user scripts; disables plugin marketplace enhancements only.") : tr("完整增强：加载插件市场、会话管理等全部页面能力。", "Full enhancement: loads plugin marketplace, conversation management, and all page capabilities.")}</div></div>
+              <button type="button" class="codex-plus-action-button" data-codex-open-manager="true">${tr("打开管理工具", "Open Manager")}</button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">打开 DevTools</div><div class="codex-plus-row-description">打开当前 Codex 页面开发者工具，方便查看用户脚本报错。</div></div>
-              <button type="button" class="codex-plus-action-button" data-codex-open-devtools="true">打开 DevTools</button>
+              <div><div class="codex-plus-row-title">${tr("打开 DevTools", "Open DevTools")}</div><div class="codex-plus-row-description">${tr("打开当前 Codex 页面开发者工具，方便查看用户脚本报错。", "Open developer tools for current Codex window to debug user scripts.")}</div></div>
+              <button type="button" class="codex-plus-action-button" data-codex-open-devtools="true">${tr("打开 DevTools", "Open DevTools")}</button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">关于 Codex++</div><div class="codex-plus-about">Codex++ 是通过外部 launcher 注入的增强菜单，不修改 Codex App 原始安装文件。<br>Build: <span data-codex-plus-build="true">${codexPlusBuild}</span><br>GitHub: <a href="https://github.com/BigPizzaV3/CodexPlusPlus" target="_blank" rel="noreferrer">https://github.com/BigPizzaV3/CodexPlusPlus</a><br>Discord: <a href="https://discord.gg/y96kX7A76v" target="_blank" rel="noreferrer">https://discord.gg/y96kX7A76v</a><br>Telegram: <a href="https://t.me/CodexPlusPlus" target="_blank" rel="noreferrer">https://t.me/CodexPlusPlus</a></div></div>
+              <div><div class="codex-plus-row-title">${tr("关于 Codex++", "About Codex++")}</div><div class="codex-plus-about">${tr("Codex++ 是通过外部 launcher 注入的增强菜单，不修改 Codex App 原始安装文件。", "Codex++ is an enhancement menu injected via an external launcher without modifying original Codex App files.")}<br>Build: <span data-codex-plus-build="true">${codexPlusBuild}</span><br>GitHub: <a href="https://github.com/BigPizzaV3/CodexPlusPlus" target="_blank" rel="noreferrer">https://github.com/BigPizzaV3/CodexPlusPlus</a><br>Discord: <a href="https://discord.gg/y96kX7A76v" target="_blank" rel="noreferrer">https://discord.gg/y96kX7A76v</a><br>Telegram: <a href="https://t.me/CodexPlusPlus" target="_blank" rel="noreferrer">https://t.me/CodexPlusPlus</a></div></div>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">Discord 社区</div><div class="codex-plus-row-description">加入 Discord 获取更新消息、反馈问题或交流使用体验。</div></div>
-              <button type="button" class="codex-plus-action-button" data-codex-plus-discord="true">打开 Discord</button>
+              <div><div class="codex-plus-row-title">${tr("Discord 社区", "Discord Community")}</div><div class="codex-plus-row-description">${tr("加入 Discord 获取更新消息、反馈问题或交流使用体验。", "Join Discord for updates, issue reports, or community discussions.")}</div></div>
+              <button type="button" class="codex-plus-action-button" data-codex-plus-discord="true">${tr("打开 Discord", "Open Discord")}</button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">Telegram 频道</div><div class="codex-plus-row-description">加入 Telegram 获取更新消息和交流使用体验。</div></div>
-              <button type="button" class="codex-plus-action-button" data-codex-plus-telegram="true">打开 Telegram</button>
+              <div><div class="codex-plus-row-title">${tr("Telegram 频道", "Telegram Channel")}</div><div class="codex-plus-row-description">${tr("加入 Telegram 获取更新消息和交流使用体验。", "Join Telegram for updates and discussions.")}</div></div>
+              <button type="button" class="codex-plus-action-button" data-codex-plus-telegram="true">${tr("打开 Telegram", "Open Telegram")}</button>
             </div>
             <div class="codex-plus-row">
-              <div><div class="codex-plus-row-title">提出问题</div><div class="codex-plus-row-description">打开 GitHub Issues 反馈问题或建议。</div></div>
-              <button type="button" class="codex-plus-issue-button" data-codex-plus-issue="true">提出问题</button>
+              <div><div class="codex-plus-row-title">${tr("提出问题", "Report an Issue")}</div><div class="codex-plus-row-description">${tr("打开 GitHub Issues 反馈问题或建议。", "Open GitHub Issues to report bugs or suggest features.")}</div></div>
+              <button type="button" class="codex-plus-issue-button" data-codex-plus-issue="true">${tr("提出问题", "Report Issue")}</button>
             </div>
           </div>
           <div class="codex-plus-panel" data-codex-plus-panel="userScripts" hidden>
             <div class="codex-plus-row" data-codex-user-scripts-section="true">
               <div>
-                <div class="codex-plus-row-title">用户脚本</div>
-                <div class="codex-plus-row-description">启用用户脚本：自动加载内置目录和用户配置目录中的 .js 文件。</div>
-                <div class="codex-plus-user-script-warning">禁用后需重载页面或重启 Codex++ 才能完全移除已执行效果。</div>
-                <div class="codex-plus-user-script-dirs" data-codex-user-script-dirs="true">正在读取脚本目录…</div>
-                <div class="codex-plus-user-script-list" data-codex-user-script-list="true">正在读取用户脚本…</div>
+                <div class="codex-plus-row-title">${tr("用户脚本", "User Scripts")}</div>
+                <div class="codex-plus-row-description">${tr("启用用户脚本：自动加载内置目录和用户配置目录中的 .js 文件。", "Enable user scripts: automatically loads .js files from built-in and user configuration directories.")}</div>
+                <div class="codex-plus-user-script-warning">${tr("禁用后需重载页面或重启 Codex++ 才能完全移除已执行效果。", "Reload page or restart Codex++ after disabling to completely remove effects.")}</div>
+                <div class="codex-plus-user-script-dirs" data-codex-user-script-dirs="true">${tr("正在读取脚本目录…", "Reading script directories...")}</div>
+                <div class="codex-plus-user-script-list" data-codex-user-script-list="true">${tr("正在读取用户脚本…", "Reading user scripts...")}</div>
               </div>
               <div class="codex-plus-user-script-actions">
                 <button type="button" class="codex-plus-toggle" data-codex-user-scripts-enabled="true"><span></span></button>
-                <button type="button" class="codex-plus-user-script-reload" data-codex-user-scripts-reload="true">重新加载用户脚本</button>
+                <button type="button" class="codex-plus-user-script-reload" data-codex-user-scripts-reload="true">${tr("重新加载用户脚本", "Reload User Scripts")}</button>
               </div>
             </div>
           </div>
           <div class="codex-plus-panel" data-codex-plus-panel="sponsor" hidden>
-            <div class="codex-plus-sponsor-text">推荐内容分为赞助商推荐和普通推荐。赞助商推荐来自支持 Codex++ 继续维护的合作方；普通推荐用于展示适合 Codex 用户的服务与信息。</div>
+            <div class="codex-plus-sponsor-text">${tr("推荐内容分为赞助商推荐和普通推荐。赞助商推荐来自支持 Codex++ 继续维护的合作方；普通推荐用于展示适合 Codex 用户的服务与信息。", "Recommendations include sponsored and general items. Sponsored content comes from partners supporting Codex++ maintenance.")}</div>
             <div class="codex-plus-ad-remote">
               ${renderCodexPlusAds()}
             </div>
@@ -5634,10 +5650,8 @@
 
   function refreshThreadIdBadges() {
     if (!codexPlusSettings().threadIdBadge) {
-      if (threadIdBadgeActive) {
-        removeThreadIdBadges();
-        threadIdBadgeActive = false;
-      }
+      removeThreadIdBadges();
+      threadIdBadgeActive = false;
       return;
     }
     threadIdBadgeActive = true;
@@ -7623,16 +7637,16 @@
         document.execCommand("copy");
         input.remove();
       }
-      showToast("会话分享链接已复制", null);
+      showToast(tr("会话分享链接已复制", "Session share link copied"), null);
       if (shareWindow && !shareWindow.closed) shareWindow.location.href = shareUrl;
     } catch (error) {
       if (shareWindow && !shareWindow.closed) shareWindow.close();
-      showToast(error?.message || "创建分享失败，请稍后重试", null);
+      showToast(error?.message || tr("创建分享失败，请稍后重试", "Failed to create share link, please retry"), null);
     } finally {
       if (button) {
         button.disabled = false;
         button.removeAttribute("aria-busy");
-        button.textContent = "分享会话";
+        button.textContent = tr("分享会话", "Share Session");
       }
     }
   }
@@ -7650,8 +7664,8 @@
       button = document.createElement("button");
       button.type = "button";
       button.className = `${sessionShareButtonClass} ${headerContextButtonClass}`;
-      button.textContent = "分享会话";
-      button.setAttribute("aria-label", "分享当前会话");
+      button.textContent = tr("分享会话", "Share Session");
+      button.setAttribute("aria-label", tr("分享当前会话", "Share current session"));
       button.dataset.codexSessionShareVersion = sessionShareButtonVersion;
       button.addEventListener("click", (event) => {
         event.preventDefault();
@@ -8068,7 +8082,7 @@
   }
 
   function localizeCodexMenus(root = codexMenuLocalizationRoot()) {
-    if (!root) return false;
+    if (!isChineseLocale() || !root) return false;
     let changed = false;
     const scopes = [];
     if (root.nodeType === 1 && root.matches?.(codexMenuLocalizationScopeSelector())) scopes.push(root);
@@ -8612,16 +8626,16 @@
     overlay.innerHTML = `
       <div class="codex-delete-confirm-content" role="dialog" aria-modal="true" aria-label="Create upstream worktree">
         <div class="codex-delete-confirm-title">Create from upstream</div>
-        <div class="codex-delete-confirm-message">等价于 git worktree add -b branch path upstream/base。创建前会先 fetch 远端分支。</div>
-        <label class="codex-plus-form-field">仓库路径<input data-codex-upstream-worktree-field="repoPath" type="text" placeholder="/path/to/repo"></label>
-        <label class="codex-plus-form-field">新分支名<input data-codex-upstream-worktree-field="branchName" type="text" placeholder="feature/my-task"></label>
-        <label class="codex-plus-form-field">Worktree 路径<input data-codex-upstream-worktree-field="worktreePath" type="text" placeholder="/path/to/worktrees/my-task"></label>
+        <div class="codex-delete-confirm-message">${tr("等价于 git worktree add -b branch path upstream/base。创建前会先 fetch 远端分支。", "Equivalent to git worktree add -b branch path upstream/base. Fetches remote branch before creating.")}</div>
+        <label class="codex-plus-form-field">${tr("仓库路径", "Repository path")}<input data-codex-upstream-worktree-field="repoPath" type="text" placeholder="/path/to/repo"></label>
+        <label class="codex-plus-form-field">${tr("新分支名", "New branch name")}<input data-codex-upstream-worktree-field="branchName" type="text" placeholder="feature/my-task"></label>
+        <label class="codex-plus-form-field">${tr("Worktree 路径", "Worktree path")}<input data-codex-upstream-worktree-field="worktreePath" type="text" placeholder="/path/to/worktrees/my-task"></label>
         <label class="codex-plus-form-field">Remote<input data-codex-upstream-worktree-field="remote" type="text" value="upstream"></label>
         <label class="codex-plus-form-field">Base branch<input data-codex-upstream-worktree-field="baseBranch" type="text" value="main"></label>
-        <div class="codex-plus-form-message" data-codex-upstream-worktree-message>填写仓库路径后会自动读取 remote 和当前分支。</div>
+        <div class="codex-plus-form-message" data-codex-upstream-worktree-message>${tr("填写仓库路径后会自动读取 remote 和当前分支。", "Enter repository path to automatically read remote and current branch.")}</div>
         <div class="codex-delete-confirm-actions">
-          <button type="button" data-codex-upstream-worktree-cancel="true">取消</button>
-          <button type="button" data-codex-upstream-worktree-defaults="true">读取默认值</button>
+          <button type="button" data-codex-upstream-worktree-cancel="true">${tr("取消", "Cancel")}</button>
+          <button type="button" data-codex-upstream-worktree-defaults="true">${tr("读取默认值", "Load Defaults")}</button>
           <button type="button" data-codex-upstream-worktree-submit="true">Create from upstream</button>
         </div>
       </div>
@@ -8660,12 +8674,12 @@
       const overlay = document.createElement("div");
       overlay.className = "codex-delete-confirm-overlay";
       overlay.innerHTML = `
-        <div class="codex-delete-confirm-content" role="dialog" aria-modal="true" aria-label="删除会话">
-          <div class="codex-delete-confirm-title">删除会话</div>
-          <div class="codex-delete-confirm-message">删除“${escapeHtml(title)}”？</div>
+        <div class="codex-delete-confirm-content" role="dialog" aria-modal="true" aria-label="${tr("删除会话", "Delete Conversation")}">
+          <div class="codex-delete-confirm-title">${tr("删除会话", "Delete Conversation")}</div>
+          <div class="codex-delete-confirm-message">${tr("删除“", "Delete \"")}${escapeHtml(title)}${tr("”？", "\"?")}</div>
           <div class="codex-delete-confirm-actions">
-            <button type="button" data-codex-delete-cancel="true">取消</button>
-            <button type="button" data-codex-delete-confirm="true">删除</button>
+            <button type="button" data-codex-delete-cancel="true">${tr("取消", "Cancel")}</button>
+            <button type="button" data-codex-delete-confirm="true">${tr("删除", "Delete")}</button>
           </div>
         </div>
       `;
@@ -9195,7 +9209,7 @@
       exportButton.type = "button";
       exportButton.className = `codex-archive-delete-all codex-archive-row-button ${exportButtonClass}`;
       exportButton.dataset.codexArchiveRowAction = "export";
-      exportButton.textContent = "导出";
+      exportButton.textContent = tr("导出", "Export");
       ["pointerdown", "mousedown", "mouseup", "touchstart"].forEach((eventName) => {
         exportButton.addEventListener(eventName, stopArchivedButtonEvent, true);
       });
