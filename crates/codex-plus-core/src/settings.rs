@@ -448,7 +448,7 @@ pub struct BackendSettings {
     pub codex_app_upstream_worktree_create: bool,
     #[serde(rename = "codexAppNativeMenuPlacement", default = "default_true")]
     pub codex_app_native_menu_placement: bool,
-    #[serde(rename = "codexAppNativeMenuLocalization", default = "default_true")]
+    #[serde(rename = "codexAppNativeMenuLocalization", default)]
     pub codex_app_native_menu_localization: bool,
     #[serde(rename = "codexAppNativeBrowserRequireIdentification", default)]
     pub codex_app_native_browser_require_identification: bool,
@@ -625,7 +625,7 @@ impl Default for BackendSettings {
             zed_remote_sync_to_zed_settings: false,
             codex_app_upstream_worktree_create: true,
             codex_app_native_menu_placement: true,
-            codex_app_native_menu_localization: true,
+            codex_app_native_menu_localization: false,
             codex_app_native_browser_require_identification: false,
             codex_app_service_tier_controls: false,
             codex_app_pet_real_mouse_look: false,
@@ -1947,7 +1947,7 @@ mod tests {
         );
         assert!(settings.zed_remote_project_registry_enabled);
         assert!(!settings.zed_remote_sync_to_zed_settings);
-        assert!(settings.codex_app_native_menu_localization);
+        assert!(!settings.codex_app_native_menu_localization);
         assert_eq!(settings.launch_mode, LaunchMode::Patch);
         assert_eq!(settings.relay_base_url, default_relay_base_url());
         assert!(settings.relay_api_key.is_empty());

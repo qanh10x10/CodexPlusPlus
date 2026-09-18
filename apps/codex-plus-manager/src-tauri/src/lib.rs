@@ -51,7 +51,7 @@ pub fn run() {
             };
             let mut main_window_builder =
                 tauri::WebviewWindowBuilder::new(app, "main", tauri::WebviewUrl::App(url.into()))
-                    .title("Codex++ 管理工具")
+                    .title("Codex++ Manager")
                     .inner_size(1180.0, 820.0)
                     .min_inner_size(960.0, 720.0);
             if let Some(icon) = app.default_window_icon().cloned() {
@@ -260,15 +260,15 @@ pub fn handle_session_share_url(url: &str) -> bool {
 }
 
 fn install_tray<R: tauri::Runtime>(app: &tauri::App<R>) -> tauri::Result<()> {
-    let show_item = MenuItem::with_id(app, TRAY_MENU_SHOW, "显示主窗口", true, None::<&str>)?;
+    let show_item = MenuItem::with_id(app, TRAY_MENU_SHOW, "Show window", true, None::<&str>)?;
     let apply_skin_item = MenuItem::with_id(
         app,
         TRAY_MENU_DREAM_SKIN_APPLY,
-        "应用 Dream Skin",
+        "Apply Dream Skin",
         true,
         None::<&str>,
     )?;
-    let quit_item = MenuItem::with_id(app, TRAY_MENU_QUIT, "退出程序", true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(app, TRAY_MENU_QUIT, "Quit", true, None::<&str>)?;
     let tray_menu = Menu::with_items(app, &[&show_item, &apply_skin_item, &quit_item])?;
 
     let mut tray_builder = TrayIconBuilder::with_id(TRAY_ID)

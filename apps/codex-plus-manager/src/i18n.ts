@@ -2,9 +2,9 @@
 //
 // The app is authored in Chinese. Every user-facing Chinese literal is wrapped
 // with `t("中文")` (plain strings) or `tf("前缀 {0}", [expr])` (interpolated
-// strings) by tools/i18n-codemod.mjs. When the active language is English we
-// look the source text up in the English dictionary; otherwise we return the
-// original Chinese, so Chinese stays the zero-overhead default.
+// strings) by tools/i18n-codemod.mjs. English is the default: we look the
+// source text up in the English dictionary. Chinese is returned only when the
+// user explicitly switches language.
 //
 // Language is resolved once at module load. Many Chinese literals live in
 // module-level constants (route tables, preset labels, …) that evaluate a
@@ -21,15 +21,18 @@ const STORAGE_KEY = "codex-plus-lang";
 
 function resolveInitialLanguage(): Language {
   try {
-    return window.localStorage.getItem(STORAGE_KEY) === "en" ? "en" : "zh";
+    return window.localStorage.getItem(STORAGE_KEY) === "zh" ? "zh" : "en";
   } catch {
-    return "zh";
+    return "en";
   }
 }
 
 // Resolved once per webview load. Do not mutate at runtime — use setLanguage,
 // which persists and reloads so module-level literals pick up the change.
 const LANG: Language = resolveInitialLanguage();
+if (typeof document !== "undefined") {
+  document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
+}
 
 export function getLanguage(): Language {
   return LANG;

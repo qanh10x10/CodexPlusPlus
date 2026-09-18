@@ -725,7 +725,7 @@ pub fn paste_fix_enabled_config(settings: &BackendSettings) -> Value {
 }
 
 pub fn force_chinese_locale_config(settings: &BackendSettings) -> Value {
-    json!({ "enabled": settings.codex_app_force_chinese_locale, "locale": "zh-CN" })
+    json!({ "enabled": settings.codex_app_force_chinese_locale, "locale": "en" })
 }
 
 pub fn fast_startup_config(settings: &BackendSettings) -> Value {

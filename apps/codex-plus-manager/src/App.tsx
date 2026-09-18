@@ -1019,7 +1019,7 @@ const defaultSettings: BackendSettings = {
   zedRemoteSyncToZedSettings: false,
   codexAppUpstreamWorktreeCreate: true,
   codexAppNativeMenuPlacement: true,
-  codexAppNativeMenuLocalization: true,
+  codexAppNativeMenuLocalization: false,
   codexAppNativeBrowserRequireIdentification: false,
   codexAppServiceTierControls: false,
   codexAppPetRealMouseLook: false,
@@ -3067,7 +3067,7 @@ export function App() {
   }, [pendingSettingsSection, route]);
 
   useEffect(() => {
-    if (getLanguage() === "en") {
+    if (getLanguage() !== "zh") {
       void invoke("update_tray_labels", {
         showLabel: "Show window",
         applySkinLabel: "Apply Dream Skin",
@@ -5664,7 +5664,7 @@ function DreamSkinCommunitySection({
     });
     return [...filtered].sort((left, right) => {
       if (sort === "popular") return right.downloadCount - left.downloadCount;
-      if (sort === "name") return left.name.localeCompare(right.name, "zh-CN");
+      if (sort === "name") return left.name.localeCompare(right.name, "en");
       return right.reviewedAt.localeCompare(left.reviewedAt);
     });
   }, [community?.items, query, sort]);

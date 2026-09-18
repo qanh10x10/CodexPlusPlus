@@ -56,13 +56,13 @@ fn force_chinese_locale_config_reflects_setting() {
     let mut settings = BackendSettings::default();
     assert_eq!(
         force_chinese_locale_config(&settings),
-        serde_json::json!({ "enabled": true, "locale": "zh-CN" })
+        serde_json::json!({ "enabled": true, "locale": "en" })
     );
 
     settings.codex_app_force_chinese_locale = false;
     assert_eq!(
         force_chinese_locale_config(&settings),
-        serde_json::json!({ "enabled": false, "locale": "zh-CN" })
+        serde_json::json!({ "enabled": false, "locale": "en" })
     );
 }
 
@@ -73,7 +73,7 @@ fn injection_script_includes_force_chinese_locale_global_and_patch() {
     settings.codex_app_fast_startup = true;
     let script = injection_script_with_settings(0, &settings);
     assert!(script.contains(
-        "window.__CODEX_PLUS_FORCE_CHINESE_LOCALE__ = {\"enabled\":true,\"locale\":\"zh-CN\"};"
+        "window.__CODEX_PLUS_FORCE_CHINESE_LOCALE__ = {\"enabled\":true,\"locale\":\"en\"};"
     ));
     assert!(script.contains(
         "window.__CODEX_PLUS_FAST_STARTUP__ = {\"enabled\":true,\"statsigTimeoutMs\":800};"
@@ -94,6 +94,6 @@ fn injection_script_includes_force_chinese_locale_global_and_patch() {
     settings.codex_app_force_chinese_locale = false;
     let script = injection_script_with_settings(0, &settings);
     assert!(script.contains(
-        "window.__CODEX_PLUS_FORCE_CHINESE_LOCALE__ = {\"enabled\":false,\"locale\":\"zh-CN\"};"
+        "window.__CODEX_PLUS_FORCE_CHINESE_LOCALE__ = {\"enabled\":false,\"locale\":\"en\"};"
     ));
 }

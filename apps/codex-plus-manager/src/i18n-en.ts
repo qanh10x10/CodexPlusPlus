@@ -586,9 +586,9 @@ export const EN_PLAIN: Record<string, string> = {
   "开启": "On",
   "开启后，通过 Codex++ 启动 Codex 前自动整理一次旧对话的归属标记。":
     "When on, tidies up ownership tags of old conversations once before launching Codex through Codex++.",
-  "强制中文界面": "Force Chinese UI",
+  "强制中文界面": "Force English UI",
   "强制启用 Codex App 内置 zh-CN 语言包，避免 Statsig/VPN 不通时回退英文。需重启 Codex 才能完整生效。":
-    "Forces the Codex app's built-in zh-CN language pack to avoid falling back to English when Statsig/VPN is unreachable. Requires restarting Codex to fully apply.",
+    "Forces the Codex app locale to English so the UI stays in EN. Requires restarting Codex to fully apply.",
   "当前": "Current",
   "当前页会话": "Sessions on this page",
   "会话总数": "Total sessions",

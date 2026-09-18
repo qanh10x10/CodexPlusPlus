@@ -100,11 +100,11 @@
     const config = window.__CODEX_PLUS_FORCE_CHINESE_LOCALE__;
     if (!config) return;
     const enabled = config.enabled === true;
-    const locale = typeof config.locale === "string" && config.locale ? config.locale : "zh-CN";
+    const locale = typeof config.locale === "string" && config.locale ? config.locale : "en";
     const installationKey = `2:${enabled ? "on" : "off"}:${locale}`;
     if (window.__codexPlusForceChineseLocaleInstalled === installationKey) return;
     window.__codexPlusForceChineseLocaleInstalled = installationKey;
-    const languages = [locale, "zh", "en-US", "en"];
+    const languages = [locale, "en-US", "en", "zh-CN", "zh"];
     const managedLocaleStorageKey = "codexPlus.forceChineseLocale.managed.v1";
     const localeReloadStorageKey = "codexPlus.forceChineseLocale.reload.v1";
 
